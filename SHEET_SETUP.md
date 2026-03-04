@@ -432,7 +432,7 @@ After the sheet structure is verified:
 - [ ] Paste the contents from the `scripts/` directory
 - [ ] Update `SLACK_WEBHOOK_URL` in `Config.gs` with your actual Slack webhook
 - [ ] Update `SLACK_USER_IDS` in `Config.gs` with actual Slack user IDs
-- [ ] Set up two time-driven triggers:
-  - `generateWeeklyRows` -- every Monday at 8:00 PM
-  - `sendSmartReminder` -- every Tuesday at 8:00 AM
-- [ ] Run `rotateChair()` manually once to verify it works
+- [ ] Set up three time-driven triggers:
+  - `generateWeeklyRows` — every Monday at 8–9 PM
+  - `rotateChair` — every Tuesday at 7–8 AM
+  - `sendSmartReminder` — every Tuesday at 8–9 AM
