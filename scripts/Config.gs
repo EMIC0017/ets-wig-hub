@@ -1,4 +1,4 @@
-const CONFIG = {
+var CONFIG = {
   // Sheet tab names
   TABS: {
     DASHBOARD: 'Dashboard',
