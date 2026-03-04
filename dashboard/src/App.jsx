@@ -3,10 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import AuthGate from './components/AuthGate';
 import Layout from './components/layout/Layout';
 import DashboardPage from './pages/DashboardPage';
-
-function WigDetailPage() {
-  return <div className="p-6">WIG Detail — coming soon</div>;
-}
+import WigDetailPage from './pages/WigDetailPage';
 
 function MeetingPage() {
   return <div className="p-6">Meeting — coming soon</div>;
