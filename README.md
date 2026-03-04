@@ -10,12 +10,13 @@ Central tracking system for ETS Wildly Important Goals.
 
 | File | Purpose |
 |------|---------|
+| `scripts/Setup.gs` | `setupWIGHub` — **run once** to build all 10 tabs, formulas, formatting, and validation |
 | `scripts/Config.gs` | Centralized constants: tab names, manager list, Slack settings, column indices |
 | `scripts/Utilities.gs` | Date helpers (`getCurrentWeekEnding`, `formatDateShort`, `formatDateISO`) and sheet accessors |
 | `scripts/WeeklySetup.gs` | `generateWeeklyRows` — auto-creates 6 Commitment Log rows each Monday evening |
 | `scripts/SlackReminder.gs` | `sendSmartReminder` — sends a targeted Slack message tagging only managers with missing entries |
 | `scripts/ChairRotation.gs` | `rotateChair` — advances the meeting chair each week and updates the Meeting tab |
-| `SHEET_SETUP.md` | Tab-by-tab build guide for the Google Sheet (10 tabs) |
+| `SHEET_SETUP.md` | Tab-by-tab reference spec (used by Setup.gs; also useful for manual verification) |
 | `README.md` | This file — setup and usage instructions |
 
 ---
@@ -23,14 +24,13 @@ Central tracking system for ETS Wildly Important Goals.
 ## Quick Start
 
 1. Create a new Google Sheet named **ETS WIG Hub**
-2. Follow [`SHEET_SETUP.md`](SHEET_SETUP.md) to build all 10 tabs
-3. Open **Extensions > Apps Script**
-4. In the Script Editor, create 5 files: `Config`, `Utilities`, `WeeklySetup`, `SlackReminder`, `ChairRotation`
-5. Copy-paste each `.gs` file's contents from this repo into the matching Apps Script file
+2. Open **Extensions > Apps Script**
+3. In the Script Editor, create 6 files: `Config`, `Setup`, `Utilities`, `WeeklySetup`, `SlackReminder`, `ChairRotation`
+4. Copy-paste each `.gs` file's contents from this repo into the matching Apps Script file
+5. **Run `setupWIGHub()`** from the editor — this builds all 10 tabs with headers, formulas, formatting, and validation automatically
 6. Update `CONFIG.SLACK_WEBHOOK_URL` with your Slack webhook URL (see [Slack Webhook Setup](#slack-webhook-setup))
 7. Update `CONFIG.SLACK_USER_IDS` with real Slack user IDs (see [Finding Slack User IDs](#finding-slack-user-ids))
 8. Set up time triggers (see [Trigger Configuration](#trigger-configuration))
-9. Hide the `_Config` tab (right-click the tab > **Hide sheet**)
 
 ---
 
