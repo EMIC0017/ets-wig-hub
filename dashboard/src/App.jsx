@@ -2,10 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import AuthGate from './components/AuthGate';
 import Layout from './components/layout/Layout';
-
-function DashboardPage() {
-  return <div className="p-6">Dashboard — coming next</div>;
-}
+import DashboardPage from './pages/DashboardPage';
 
 function WigDetailPage() {
   return <div className="p-6">WIG Detail — coming soon</div>;
