@@ -4,10 +4,7 @@ import AuthGate from './components/AuthGate';
 import Layout from './components/layout/Layout';
 import DashboardPage from './pages/DashboardPage';
 import WigDetailPage from './pages/WigDetailPage';
-
-function MeetingPage() {
-  return <div className="p-6">Meeting — coming soon</div>;
-}
+import MeetingPage from './pages/MeetingPage';
 
 export default function App() {
   return (
