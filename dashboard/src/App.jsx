@@ -8,7 +8,7 @@ import MeetingPage from './pages/MeetingPage';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ets-wig-hub">
       <AuthProvider>
         <AuthGate>
           <Routes>
