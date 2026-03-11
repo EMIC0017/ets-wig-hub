@@ -86,7 +86,9 @@ Run `setupWIGHub()` once on a blank Google Sheet. It creates all 10 tabs with:
 
 ### WeeklySetup.gs — Monday Trigger
 
-`generateWeeklyRows()` — Creates 6 rows in the Commitment Log (one per manager) for the upcoming Tuesday meeting. Idempotent: skips if rows already exist for that week.
+`generateWeeklyRows()` — Snapshots current scores to `_Config` (for trend comparison), then creates 6 rows in the Commitment Log (one per manager) for the upcoming Tuesday meeting. Idempotent: skips row creation if rows already exist for that week.
+
+`snapshotScores()` — Copies each WIG's current score (from team tab B3) into `_Config` column D, with a timestamp in column E. Called automatically by `generateWeeklyRows()` but can also be run independently.
 
 **Trigger:** Monday 8–9 PM
 
@@ -134,7 +136,7 @@ Deployed as an Apps Script Web App. Provides JSON endpoints for reading and writ
 | Commitment Log | A1:E∞ | Weekly entries (auto-generated rows, manager-filled D/E) |
 | Meeting | Fixed layout | Agenda: date, chair, attendance, scoreboard, AOB |
 | WIG 1–6 (team tabs) | B3=score, B4=date, row 9+=milestones | Per-WIG tracking |
-| _Config (hidden) | A2:B7 | Chair rotation state (X marker) |
+| _Config (hidden) | A2:B7 | Chair rotation state (X marker); D2:D7 = previous week scores; E2:E7 = snapshot dates |
 
 ### Key Cells
 
@@ -143,7 +145,9 @@ Deployed as an Apps Script Web App. Provides JSON endpoints for reading and writ
 | `B3` | Each team tab | **Current Score** — the single most important input cell. Dashboard pulls from here. |
 | `B4` | Each team tab | `=IF(B3<>"", TODAY(), "")` — auto-calculated last-updated date |
 | `C2:C7` | Dashboard | `='WIG N — Name'!B3` — score formulas |
+| `E2:E7` | Dashboard | Trend arrows (auto-formula for % WIGs, static `→` for text WIGs). Compares current score to `_Config` D column. Thresholds: >5% = ⬆, >0% = ↗, 0 = →, <0% = ↘, <-5% = ⬇ |
 | `F2:F7` | Dashboard | `='WIG N — Name'!B4` — last-updated formulas |
+| `D2:D7` | _Config | Previous week's scores (snapshotted by `generateWeeklyRows()` every Monday) |
 | `B1` | Meeting | Meeting date (set by `rotateChair`) |
 | `B2` | Meeting | Current chair (set by `rotateChair`) |
 

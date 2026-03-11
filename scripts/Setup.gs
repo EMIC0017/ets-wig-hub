@@ -155,8 +155,23 @@ function buildDashboard(ss, sheet, teamSheets) {
     // Col D: target
     sheet.getRange(row, 4).setValue(manager.target);
 
-    // Col E: trend arrow (start flat)
-    sheet.getRange(row, 5).setValue('→');
+    // Col E: trend arrow — auto-calculated from current score vs _Config previous score
+    // For percentage WIGs: compare numerically with magnitude thresholds
+    // For text WIGs: always show "→" (no numeric comparison possible)
+    if (manager.targetType === 'percent') {
+      // _Config D column holds previous score; row matches (2+i)
+      var configRef = "'_Config'!D" + (2 + i);
+      // Formula: if no previous score, show →; else compare with 5% threshold for big change
+      sheet.getRange(row, 5).setFormula(
+        '=IF(OR(' + configRef + '="",' + configRef + '=0),"→",' +
+        'IF(C' + row + '-' + configRef + '>0.05,"⬆",' +
+        'IF(C' + row + '-' + configRef + '>0,"↗",' +
+        'IF(C' + row + '-' + configRef + '<-0.05,"⬇",' +
+        'IF(C' + row + '-' + configRef + '<0,"↘","→")))))'
+      );
+    } else {
+      sheet.getRange(row, 5).setValue('→');
+    }
 
     // Col F: last updated formula referencing team tab B4
     sheet.getRange(row, 6).setFormula("='" + tabName + "'!B4");
@@ -200,9 +215,50 @@ function buildDashboard(ss, sheet, teamSheets) {
     .setRanges(ranges)
     .build();
 
-  // Apply rules (green first = highest priority)
-  const existingRules = sheet.getConditionalFormatRules();
-  sheet.setConditionalFormatRules(existingRules.concat([greenRule, yellowRule, redRule]));
+  // Apply score rules (green first = highest priority)
+  var allRules = sheet.getConditionalFormatRules();
+  allRules = allRules.concat([greenRule, yellowRule, redRule]);
+
+  // -- Conditional formatting on Trend column (E2:E7) --
+  var trendRange = [sheet.getRange('E2:E7')];
+
+  // Big improvement: ⬆ = dark green
+  var trendBigUp = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('⬆')
+    .setFontColor('#006100')
+    .setRanges(trendRange)
+    .build();
+
+  // Small improvement: ↗ = light green
+  var trendSmallUp = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('↗')
+    .setFontColor('#38a169')
+    .setRanges(trendRange)
+    .build();
+
+  // No change: → = gray
+  var trendFlat = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('→')
+    .setFontColor('#718096')
+    .setRanges(trendRange)
+    .build();
+
+  // Small decline: ↘ = orange
+  var trendSmallDown = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('↘')
+    .setFontColor('#dd6b20')
+    .setRanges(trendRange)
+    .build();
+
+  // Big decline: ⬇ = red
+  var trendBigDown = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('⬇')
+    .setFontColor('#9c0006')
+    .setRanges(trendRange)
+    .build();
+
+  allRules = allRules.concat([trendBigUp, trendSmallUp, trendFlat, trendSmallDown, trendBigDown]);
+  sheet.setConditionalFormatRules(allRules);
 }
 
 
@@ -404,6 +460,10 @@ function buildConfigTab(sheet) {
 
   // B2: initial chair marker
   sheet.getRange('B2').setValue('X');
+
+  // Col D: Previous Scores header + empty slots for snapshot
+  sheet.getRange('D1').setValue('Previous Score').setFontWeight('bold');
+  sheet.getRange('E1').setValue('Snapshot Date').setFontWeight('bold');
 
   // Hide the tab
   sheet.hideSheet();
