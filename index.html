@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETS 4DX WIG Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--kale:#003D29;--lime:#0AAD0A;--carrot:#FF7009;--turmeric:#ECAA01;--cashew:#FAF1E5;--white:#FFFFFF;--g1:#F4F4F4;--g2:#E0E0E0;--g3:#888;--danger:#BA0239;--shadow:0 1px 5px rgba(0,0,0,0.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',Poppins,Arial,sans-serif;background:var(--cashew);color:var(--kale);font-size:14px}
+.hdr{background:var(--kale);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.hdr-left h1{font-size:19px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.hdr-left .sub{font-size:11px;color:var(--lime);margin-top:2px}
+.hdr-right{text-align:right;font-size:11px;color:rgba(255,255,255,.55);line-height:1.8}
+.hdr-right a{color:var(--lime);text-decoration:none}
+.huddle-pill{display:inline-block;background:var(--carrot);color:#fff;border-radius:4px;padding:2px 9px;font-weight:700;font-size:10px}
+.back-btn{background:rgba(255,255,255,.12);border:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;display:none;align-items:center;gap:6px}
+.back-btn:hover{background:rgba(255,255,255,.22)}
+.back-btn.vis{display:flex}
+.page{display:none}.page.active{display:block}
+.wrap{max-width:1140px;margin:0 auto;padding:22px 20px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--g3);margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid var(--lime);display:inline-block}
+/* Home cards */
+.ws-bar{background:rgba(255,255,255,.07);border-top:1px solid rgba(255,255,255,.08);padding:8px 24px;display:flex;align-items:center;gap:12px;font-size:12px;color:rgba(255,255,255,.6)}
+.ws-bar a{color:var(--lime);text-decoration:none;font-weight:600}
+.wig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.wig-card{background:var(--white);border-radius:12px;padding:18px 20px;border-left:5px solid var(--lime);box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.wig-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.12)}
+.wig-card.danger{border-left-color:var(--danger)}.wig-card.warning{border-left-color:var(--turmeric)}
+.wig-num{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--g3);margin-bottom:2px}
+.wig-name{font-size:15px;font-weight:700;margin-bottom:1px}.wig-owner{font-size:11px;color:var(--g3);margin-bottom:12px}
+.prog-row{display:flex;align-items:center;gap:10px}
+.prog-bg{flex:1;height:9px;background:var(--g2);border-radius:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:5px;background:var(--lime)}
+.wig-card.danger .prog-fill{background:var(--danger)}.wig-card.warning .prog-fill{background:var(--turmeric)}
+.wig-pct{font-size:20px;font-weight:700;min-width:48px;text-align:right}
+.wig-aof{font-size:10px;color:var(--g3);margin-top:5px}.drill-hint{position:absolute;bottom:12px;right:14px;font-size:10px;color:var(--g3);opacity:.55}
+/* Detail page */
+.detail-hero{background:var(--kale);color:#fff;padding:22px 26px;border-radius:12px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.hero-text{flex:1 1 280px}.hero-text h2{font-size:21px;font-weight:700;margin-bottom:3px}
+.hero-text .meta{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px}
+.hero-text .desc{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6;max-width:540px}
+.hero-score{text-align:center;background:rgba(255,255,255,.09);border-radius:10px;padding:16px 26px;min-width:120px}
+.hero-score .big{font-size:46px;font-weight:700;line-height:1;color:var(--lime)}
+.hero-score.warn .big{color:var(--turmeric)}.hero-score.red .big{color:#ff6b6b}
+.hero-score .lbl{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+.panel{background:var(--white);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--kale);margin-bottom:12px}
+.metric-row{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.metric-card{background:var(--white);border-radius:10px;padding:13px 16px;box-shadow:var(--shadow);flex:1 1 200px}
+.metric-card .ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g3);margin-bottom:4px}
+.metric-card .mv{font-size:13px;color:var(--kale);line-height:1.5}
+/* Commit table */
+.commit-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.commit-tbl th{background:var(--kale);color:#fff;padding:8px 12px;text-align:left;font-size:11px}
+.commit-tbl td{padding:9px 12px;border-bottom:1px solid var(--g2);vertical-align:top;line-height:1.5}
+.commit-tbl tr:last-child td{border-bottom:none}
+.commit-tbl tr:nth-child(even) td{background:var(--g1)}
+.wk{display:inline-block;background:var(--kale);color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;white-space:nowrap}
+/* Phase bars */
+.phase-row{margin-bottom:10px}
+.phase-lr{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;gap:8px}
+.phase-name{flex:1;color:var(--kale)}.phase-meta{font-size:11px;color:var(--g3);white-space:nowrap}
+.phase-bg{height:10px;background:var(--g2);border-radius:5px;overflow:hidden}
+.phase-fill{height:100%;border-radius:5px;background:var(--lime)}
+.phase-fill.done{background:var(--lime)}.phase-fill.active{background:var(--turmeric)}.phase-fill.todo{background:var(--g2)}
+/* Callout */
+.callout{background:#fff8e1;border-left:4px solid var(--turmeric);border-radius:0 8px 8px 0;padding:12px 16px;font-size:12px;line-height:1.6;margin-bottom:18px}
+/* Links */
+.links-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.ext-link{display:inline-flex;align-items:center;gap:5px;background:var(--g1);border:1px solid var(--g2);color:var(--kale);text-decoration:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px}
+.ext-link:hover{background:var(--lime);color:#fff;border-color:var(--lime)}
+/* Iframe */
+.iframe-wrap{margin-bottom:20px}
+.iframe-bar{display:flex;align-items:center;justify-content:space-between;background:var(--kale);color:#fff;padding:9px 14px;border-radius:8px 8px 0 0;font-size:12px;font-weight:600}
+.iframe-bar a{color:var(--lime);text-decoration:none;font-size:11px}
+.iframe-container{position:relative;background:#f0f0f0;border-radius:0 0 8px 8px;overflow:hidden}
+.iframe-container iframe{display:block;width:100%;height:440px;border:none}
+.iframe-blocked{display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:#f9f9f9;font-size:13px;color:var(--g3)}
+.iframe-toggle{background:rgba(255,255,255,.15);border:none;color:#fff;font-family:inherit;font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer}
+.iframe-toggle:hover{background:rgba(255,255,255,.25)}
+/* Dark matter */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{background:var(--white);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);text-align:center}
+.stat-n{font-size:30px;font-weight:700;color:var(--kale);line-height:1}.stat-n.accent{color:var(--lime)}
+.stat-l{font-size:10px;color:var(--g3);margin-top:3px;text-transform:uppercase;letter-spacing:.7px}
+.hbar-row{margin-bottom:8px}.hbar-lr{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.hbar-bg{height:10px;background:var(--g2);border-radius:5px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:5px;background:var(--lime)}
+/* Ticket table */
+.filter-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.filter-row select,.filter-row input{font-family:inherit;font-size:12px;padding:5px 9px;border:1px solid var(--g2);border-radius:6px;background:#fff;color:var(--kale);outline:none}
+.filter-row select:focus,.filter-row input:focus{border-color:var(--lime)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.tbl thead th{background:var(--kale);color:#fff;padding:8px 10px;text-align:left;font-size:11px}
+.tbl tbody tr:nth-child(even){background:var(--g1)}.tbl tbody tr:hover{background:#e8f5e9}
+.tbl td{padding:7px 10px;vertical-align:middle}
+.tkey{color:var(--lime);font-weight:700;white-space:nowrap}.tkey a{color:inherit;text-decoration:none}.tkey a:hover{text-decoration:underline}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.b-intake{background:#e8f0fe;color:#3c4cad}.b-inprog{background:#e6f4ea;color:#1e7e34}
+.b-review{background:#fff3e0;color:#c55a00}.b-plan{background:#fce4ec;color:#ad1457}
+.b-p1{background:var(--danger);color:#fff}.b-p2{background:var(--carrot);color:#fff}
+.b-p3{background:var(--turmeric);color:#fff}.b-p4{background:var(--g2);color:var(--g3)}
+.footer{background:var(--kale);color:rgba(255,255,255,.4);font-size:11px;text-align:center;padding:14px;margin-top:32px}
+.footer a{color:var(--lime);text-decoration:none}
+</style>
+</head>
+<body>
+<!-- WIG_DATA_BEGIN -->
+<script>
+window.WIG_CHART_URLS={1:"https://app.superblocks.com/code-mode/applications/c82ae5b1-bfaa-49e8-833a-79198bd7437c/",2:"https://script.google.com/a/macros/instacart.com/s/AKfycbztkhMdhjMl7z8iO8Ry-J74HnIkFmnJuTj1eYcqrMNPl0X1YFTgQNtL5rumGxdcjZTF/exec",3:"https://docs.google.com/spreadsheets/d/e/2PACX-1vSNzPUDRQ2ixBkDjSiqqRUJPQAw2622tMunI5ze7zAeg01fv0WoZubVArEoc9hzQhMZIltcuh7eWa3F/pubchart?oid=657648021&format=interactive",4:"https://app.superblocks.com/code-mode/applications/b831dc4b-1557-4c58-ac1d-0ebf0286c319/",5:"https://script.google.com/a/macros/instacart.com/s/AKfycbwt427jAAtIRCvNTO6P7kQQx36_9PAUTyTkqyWAt0Vgh8EQ6FEftd1NmAXQa-cC6Wjf/exec",6:"https://script.google.com/a/macros/instacart.com/s/AKfycbyCN9c3q68Tg1DdOkr_F84um0RUA5G1rbYCRJRUYN_ragwNjBNaGZHlf2KhyfXegkrI4w/exec"};
+window.WIG_WORKSHEET_URL="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90/edit?gid=1473975196#gid=1473975196";
+window.WIG_JIRA_DATA={
+lastUpdated:"2026-05-05T07:30:00-04:00",
+wigScores:{asOf:"2026-05-01",wigs:[
+{id:1,name:"Jira Management Process",owner:"Hassan Javaid",score:51.3,target:100,rag:"🟡 In Progress"},
+{id:2,name:"CSAT Implementation",owner:"Nikita Patrachari",score:70.9,target:100,rag:"🟢 On Track"},
+{id:3,name:"Knowledge Management",owner:"Alicia",score:27.8,target:100,rag:"🔴 At Risk"},
+{id:4,name:"Track Untracked Work",owner:"Eric Morin / Sahil Khan",score:66.3,target:100,rag:"🟡 In Progress"},
+{id:5,name:"Sophistication of Metrics",owner:"Sudhanshu Chugh",score:47.1,target:100,rag:"🟡 In Progress"},
+{id:6,name:"Incident Management",owner:"Jonathan Bloomfield",score:62.0,target:100,rag:"🟡 In Progress"}
+]},
+wigDetails:{
+1:{lagMetric:"% tickets meeting SLA",leadMetric:"Engineering-delay breach rate reduction",
+description:"Standardise the Jira ticket management process to reduce SLA breaches, improve routing accuracy, and deliver a single-click escalation automation.",
+phases:[
+{name:"Brainstorming — Discovery & Pain-Point Alignment",deadline:"Feb 20",weight:10,pct:100},
+{name:"Data Collection & Baseline Metrics Analysis",deadline:"Mar 20",weight:20,pct:100},
+{name:"Solution Design & Automation Build",deadline:"Apr 30",weight:30,pct:68},
+{name:"Pilot Deployment & Impact Validation",deadline:"May 25",weight:25,pct:5},
+{name:"Full Rollout, Documentation, Training & Closure",deadline:"Jun 30",weight:15,pct:0}
+],
+commitmentHistory:[
+{week:"5/1",lag:"Mode report built for problematic Eng teams (filterable by pod). Stalled-ticket automation deployed for Whitelabel & FaaS. Eng escalation SLA timer deployed for pilot tickets.",lead:"Evaluate SLA timer results for all pods. Complete single-click workflow for FaaS. Stalled-ticket alerting for remaining pods. Schedule team workshop."},
+{week:"4/24",lag:"Complete stall ticket dashboard. Complete coding on automation of single click for POD.",lead:"Top 5 Eng teams stalling tickets (last 1.5 yrs). Get async update if meeting postponed."},
+{week:"4/17",lag:"Functioning URL for scoreboard. Streamlining doc published for ETS. Single-click automation for one component.",lead:"Complete stall ticket dashboard. Complete coding on automation of single click for POD."},
+{week:"4/10",lag:"1-click automation draft done (FaaS pod config). Streamlining escalation across channels. Scoreboard functional but needs hosting.",lead:"Functioning URL for scoreboard. Streamlining doc published for ETS. Finish single-click for one component."},
+{week:"4/2",lag:"Improved scoreboard and link. Synced with eng teams.",lead:"1-click automation draft (FaaS pod config done), streamlining escalation, scoreboard ready for linking."},
+{week:"3/27",lag:"Locked baseline/target for eng-caused breaches. Finalized breach dashboard.",lead:"Improve scoreboard and link. Sync with eng teams."},
+{week:"3/20",lag:"Phase 2 data collection kicked off: at-risk SLA dashboard built, engineering-delay breaches confirmed as main driver.",lead:"Lock baseline/target for eng-caused breaches, finalize breach dashboard."},
+{week:"3/13",lag:"Phase 2 data collection kicked off: at-risk SLA dashboard built, breach data compiled.",lead:"Lock baseline, finalize breach dashboard, agree on success measures."}
+],
+links:[{label:"Superblocks Dashboard",url:"https://app.superblocks.com/code-mode/applications/c82ae5b1-bfaa-49e8-833a-79198bd7437c/"},{label:"ETS JIRA Board",url:"https://instacart.atlassian.net/jira/software/projects/ETS/boards"}],
+notes:"Phase 3 (Solution Design & Automation Build) at 68% — overdue Apr 30 deadline. Phase 4 (Pilot) just starting at 5%."},
+2:{lagMetric:"CSAT survey response rate & satisfaction score",leadMetric:"# surveys completed / dashboard live",
+description:"Implement a reliable, automated CSAT feedback loop for ETS customers, with a dashboard tracking response rates and satisfaction scores.",
+phases:[
+{name:"Define CSAT Objectives",deadline:"",weight:15,pct:100},
+{name:"Configure Survey Tool",deadline:"",weight:20,pct:98},
+{name:"Build CSAT Dashboard",deadline:"",weight:20,pct:96},
+{name:"Define Action Workflow",deadline:"",weight:20,pct:53},
+{name:"Run Pilot",deadline:"",weight:15,pct:44},
+{name:"Go Live",deadline:"Jun 15",weight:10,pct:0}
+],
+commitmentHistory:[
+{week:"5/1",lag:"Completed presentation with final touches. Brainstorming sessions held. Connected with teams already using CSAT. Stakeholder meeting scheduled for Wednesday.",lead:"Review presentation with stakeholders Wed. Incorporate feedback. Finalize process and prepare next steps. Schedule team workshop."},
+{week:"4/24",lag:"Feedback-handling process built into framework. Held interactions with teams using CSAT to understand existing practices.",lead:"Prepare presentation on response-handling process for leads review, then proceed with enabling CSAT survey."},
+{week:"4/17",lag:"Enhanced scorecard version created. CSAT email template finalized. Forwarded to leads channel for approval.",lead:"Build feedback-handling framework: classify positive/neutral/negative responses, define buckets."},
+{week:"4/10",lag:"Built CSAT using Superblocks — demo prepared.",lead:"Review data-sanity items (e.g. email template for feedback collection)."},
+{week:"4/2",lag:"Developed tracking method for incoming survey responses.",lead:"Evaluate Claude and eazyBI against requirements. Select preferred dashboard tool."},
+{week:"3/27",lag:"Reached out to JIRA team to implement survey. Working to get CSM volunteer.",lead:"Develop clear method for tracking incoming survey responses."},
+{week:"3/20",lag:"Questions finalised. Poll responses received. Stakeholder plan agreed.",lead:"Reach out to JIRA team to implement survey. Convince CSM volunteer."},
+{week:"3/13",lag:"Scheduled session with all stakeholders to review current process and drafted questions.",lead:"Finalize revised questions, share Slack poll for consensus."}
+],
+links:[{label:"Team Scorecard",url:"https://docs.google.com/spreadsheets/d/1BNQYm-cwHzKLSkmZj4mt70FeNzuDzt9D_wvVLtWYYls/edit"}],
+notes:"🟢 On Track — score 70.9. Phases 1–3 essentially complete. Phase 4 (Action Workflow) at 53%, Phase 5 (Pilot) at 44%. Target go-live Jun 15."},
+3:{lagMetric:"# mature process docs published",leadMetric:"# docs reviewed / updated this week",
+description:"Build a sustainable documentation management system: guidelines, archive process, onboarding doc overhaul, and ongoing review cadence.",
+phases:[],
+commitmentHistory:[
+{week:"5/1",lag:"General ONB doc completed. Feedback form drafted.",lead:"Finalize feedback form. Apply documentation process to current docs. Schedule team workshop."},
+{week:"4/24",lag:"Finalizing gen onboarding doc. Writing/updating 2 docs each. Creating revision request process doc.",lead:"Finish gen onboarding doc. Develop feedback form for external input on doc guidelines."},
+{week:"4/17",lag:"Creating missing pages for general onboarding docs (etiquette, mandatory meetings, system access).",lead:"Finalize gen onboarding doc, write/update 2 docs each, create revision request process doc."},
+{week:"4/10",lag:"Reviewed and finalizing general onboarding doc. Documentation guidelines finalized.",lead:"Create missing pages for general onboarding: etiquette, mandatory meetings, system access."},
+{week:"4/2",lag:"Continued work on doc guidelines, ONB in progress.",lead:"Tuesday meeting to finalize general onboarding doc. Finalize documentation guidelines."},
+{week:"3/27",lag:"Milestones identified. Archiving & documentation process begun. Scoreboard linked.",lead:"Continue first milestone. Begin onboarding doc overhaul with Chandan & Jon."},
+{week:"3/20",lag:"Milestones identified. Archiving & documentation process begun.",lead:"Continue first milestone (documentation guidelines). Begin onboarding doc overhaul."},
+{week:"3/13",lag:"Spun up documentation archive & approval process. Identified 200 docs for review.",lead:"Solidify WIG by identifying milestones. Test archive process & begin doc updates."}
+],
+links:[{label:"ETS Documentation Checklist",url:"https://docs.google.com/spreadsheets/d/13GHAWJpE6l2kxdssU5fIiKXq121gdcuoAQvqycZYZ-Y"}],
+notes:"⚠️ Score 27.8% — lowest on the team. Scoreboard tab sparse in sheet (no phase structure defined yet). General ONB doc now complete as of 5/1."},
+4:{lagMetric:"% of ETS work tracked in tickets (adoption + milestones)",leadMetric:"Weekly PSOINT ticket creation rate; scoreboard % change",
+description:"Track and surface all untracked ETS work (dark matter) to make the true workload visible, reduce invisible toil, and increase ticket hygiene.",
+phases:[
+{name:"Pre-flight (MVP setup, base metrics, hosting)",deadline:"",weight:50,pct:100},
+{name:"Adoption Tracking (16.3% of 50% target)",deadline:"",weight:50,pct:33}
+],
+commitmentHistory:[
+{week:"5/1",lag:"Working on new survey, promoting adoption. Dashboard completed at Superblocks.",lead:"Survey to be published next week. Metrics to be added to ETS weekly metrics. More adoption ideas."},
+{week:"4/24",lag:"Feedback integration post-prezo, monitoring team usage and fixing bugs. Starting to look at live metrics.",lead:"Working on new survey, promoting adoption, Superblocks dashboard."},
+{week:"4/17",lag:"Dogfooding continues. ETS prezo this week. Metrics review.",lead:"Feedback integration post-prezo, monitoring team usage, fixing bugs."},
+{week:"4/10",lag:"Scoreboard needs integration (Nikita helping). Dogfooding. Review decomm of PSO-Int.",lead:"Dogfooding continues. Next prezo at ETS weekly. Metrics review."},
+{week:"4/2",lag:"Revising milestones, integration scoreboard, more testing.",lead:"Scoreboard still needs integration (Nikita helping), dogfooding."},
+{week:"3/27",lag:"Scoreboard complete, ingestion methods built, metrics in beta.",lead:"Revising milestones, integration scoreboard, more testing."},
+{week:"3/20",lag:"Scoreboard linked. ETS presentation prepared. Dogfooding in PSO-Int.",lead:"ETS prezo Thu team meeting. Plans to invite alpha testers."},
+{week:"3/13",lag:"Survey results reviewed. Scoreboard built. Automation in Slack & PSO-ext.",lead:"Issues submitted to Jake. Metrics math review. Scoreboard linked to main board."}
+],
+links:[{label:"Superblocks Dashboard",url:"https://app.superblocks.com/code-mode/applications/b831dc4b-1557-4c58-ac1d-0ebf0286c319/"},{label:"WIG Manager Spreadsheet",url:"https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90"},{label:"WIG Doc",url:"https://docs.google.com/document/d/1zCgC6eS7LvTTRBvBsm74g8EgMpmze7QQHTt8FiKP_Mk"}],
+notes:"Score 66.3% (50% milestones done + 16.3% adoption of 50% target). Maximus doing manual scoreboard pull (adoption halved) until automation lands. Survey publishing next week."},
+5:{lagMetric:"# KPI dashboards live and signed off",leadMetric:"AHT query completion; Mode dashboard build progress",
+description:"Build a sophisticated, automated metrics layer for ETS — AHT at ETS and pod level, SLA compliance rate, and a Health Index, all surfaced in Mode.",
+phases:[],
+commitmentHistory:[
+{week:"5/1",lag:"SLA compliance rate blocked — Mode data source lacks SLA data, workaround in progress. Health Index drafted as weighted average of Freshness, Completeness, and Velocity.",lead:"Show SLA compliance rate on dashboard. Finalize parameters for Health Index formula. Book sync with Eric/Nikita."},
+{week:"4/24",lag:"Pie chart showing AHT breakdown (ETS/ENG/Reporter) complete and previewable.",lead:"Sub-team 1: finish SLA compliance rate. Sub-team 2: Health Index formula first draft."},
+{week:"4/17",lag:"Pod-level AHT ready to sign off. ETS-level AHT breakdown query in progress. Mode dashboard preview live.",lead:"All hands on AHT breakdown pie chart showing ticket handling time among ETS, ENG, reporter."},
+{week:"4/10",lag:"Vibe-coded scoreboard 1st draft. ETS-level AHT ready to sign off.",lead:"Pod-level AHT ready to sign off. ETS-level AHT breakdown query finalized."},
+{week:"4/2",lag:"Confirmed Mode capability for dashboard. Explored Google App Script for scoreboard.",lead:"Vibe code scoreboard 1st draft. ETS-level AHT sign-off."},
+{week:"3/27",lag:"Continuing AHT and linkable scoreboard. Exploring Mode capacity.",lead:"Dashboard design, documentation of KPIs, scoreboard creative updates."},
+{week:"3/20",lag:"Consolidated WIG meeting structure. DE sub-team exploring data requirements.",lead:"AHT ready for stakeholder approval. UI design draft."},
+{week:"3/13",lag:"Consolidated WIG meeting structure, enabled DE sub-team, conducted data representation design discussions.",lead:"AHT ready for stakeholders approval. UI design draft."}
+],
+links:[{label:"Mode Dashboard (AHT)",url:"https://app.mode.com/instacart/reports/c9b6d2c7cf3a"},{label:"ETS Metrics Chart",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vSNzPUDRQ2ixBkDjSiqqRUJPQAw2622tMunI5ze7zAeg01fv0WoZubVArEoc9hzQhMZIltcuh7eWa3F/pubchart?oid=657648021&format=interactive"}],
+notes:"Sheet tab contains a screenshot only (Apr 30). Score 47.1% from WIG Manager. SLA compliance rate blocked by Mode data gap. Team: Ali Zaidi, Yaseen Lambe, Chris Jin, Avneet Taneja, Abdullah Mohammed, Aneeq Nasir."},
+6:{lagMetric:"# runbooks published and validated",leadMetric:"# runbooks drafted / reviewed this week",
+description:"Establish a mature ETS incident management practice: RACI, oncall runbooks, weekly sessions, handover protocols, training docs, and automation.",
+phases:[],
+commitmentHistory:[
+{week:"5/1",lag:"Finished one-pager and template. Brainstormed automation ideas, documented and assigned them.",lead:"Start implementing automation ideas. Create subtasks to split work amongst team members."},
+{week:"4/24",lag:"Finished process training, tooling training, and incident training docs. Finished one-pager and template.",lead:"Brainstorm automation ideas — at least 1 per remaining ticket. Focus on alert routing and leveraging Blueberry/incident bot."},
+{week:"4/17",lag:"Reviewed training docs, begun writing tools documentation, documentation gap process is written.",lead:"Finish training docs for incident bot and oncall rotator. Finish Checklist and template."},
+{week:"4/10",lag:"Scoreboard link working, all drafts confirmed.",lead:"Begin reviewing training documentation for oncall processes/incidents/tooling."},
+{week:"4/2",lag:"Draft remaining 3 runbooks. Stakeholder review. Scoreboard link.",lead:"Scoreboard link working, confirm all drafts exist."},
+{week:"3/27",lag:"7 docs reviewed, 4 drafted. Stakeholder review initiated.",lead:"Draft remaining 3 runbooks. Stakeholder review. Scoreboard link."},
+{week:"3/20",lag:"Runbooks identified. Docs reviewed by individual team members.",lead:"Review runbooks as a team this week. Iterate on more docs."},
+{week:"3/13",lag:"Weekly oncall session and handover sessions implemented. RACI established and reviewed with larger oncall group.",lead:"Review oncall runbooks and identify which need updating."}
+],
+links:[{label:"Scoreboard",url:"https://script.google.com/a/macros/instacart.com/s/AKfycbyCN9c3q68Tg1DdOkr_F84um0RUA5G1rbYCRJRUYN_ragwNjBNaGZHlf2KhyfXegkrI4w/exec"},{label:"ETS JIRA Board",url:"https://instacart.atlassian.net/jira/software/projects/ETS/boards"}],
+notes:"Score 62% from WIG Manager. Sheet tab sparse. 4 runbooks in Review/Validation (ETS-83, -80, -66). 5 new Oncall Runbook Requests in Intake (ETS-290–294)."}
+},
+commitments:{thisWeek:[],lastWeek:[]},
+darkMatter:{totalTickets:65,byStatus:{"Intake":42,"In Progress":14,"Review/Validation":6,"Planning":3},byAssignee:{"Gage Maher":21,"Niraj Patel":16,"Eric Morin":9,"Unassigned":8,"Gabriel Sliwowicz":3,"Nandini Patel":2,"Patrick Tan":2,"Sahil Khan":2,"Bilal Rizvi":1,"Maximus Cresswell":1}},
+tickets:[
+{key:"ETS-294",summary:"[Oncall Runbook] Caper Common Issues",status:"Intake",assignee:"Unassigned",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-294"},
+{key:"ETS-293",summary:"[Oncall Runbook] Whitelabel Common Issues",status:"Intake",assignee:"Bilal Rizvi",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-293"},
+{key:"ETS-292",summary:"[Oncall Runbook] Ads Common Issues",status:"Intake",assignee:"Unassigned",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-292"},
+{key:"ETS-291",summary:"[Oncall Runbook] Catalog Common Issues",status:"Intake",assignee:"Unassigned",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-291"},
+{key:"ETS-290",summary:"[Oncall Runbook] FoodStorm Common Issues",status:"Intake",assignee:"Unassigned",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-290"},
+{key:"ETS-285",summary:"Engage with Gage",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-285"},
+{key:"ETS-181",summary:"Weekly — Audit Confluence page naming convention",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-181"},
+{key:"ETS-180",summary:"Weekly — Review Jira recurring issue themes",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-180"},
+{key:"ETS-179",summary:"Weekly — AI quality test: 10 FoodStorm ETS questions",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-179"},
+{key:"ETS-178",summary:"Weekly — Review sync meeting Gemini notes",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-178"},
+{key:"ETS-177",summary:"Weekly — Review #foodstorm-ask-us-public",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-177"},
+{key:"ETS-174",summary:"ETS - IMP Sync — Meeting Action Items",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-174"},
+{key:"ETS-173",summary:"ETS - ENG Sync — Meeting Action Items",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-173"},
+{key:"ETS-172",summary:"CSM:ETS SYNC - FoodStorm — Meeting Action Items",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-172"},
+{key:"ETS-155",summary:"Operation Smooth Handoff — warranty-to-ETS handover",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-155"},
+{key:"ETS-146",summary:"Operation Sharp Entry — FoodStorm onboarding overhaul",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-146"},
+{key:"ETS-145",summary:"Operation Clean Sweep — internal documentation audit",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-145"},
+{key:"ETS-144",summary:"Operation New Frontier — ETS expanding into ENG territory",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-144"},
+{key:"ETS-143",summary:"Operation Bug Breach — breaking through the bug backlog",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-143"},
+{key:"ETS-142",summary:"Operation Sunset — FoodStorm sunsetting, WAF & email migration",status:"Intake",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-142"},
+{key:"ETS-280",summary:"Update Runbook: Update Runbook Task Ticket Automation",status:"Intake",assignee:"Gabriel Sliwowicz",priority:"P3",url:"https://instacart.atlassian.net/browse/ETS-280"},
+{key:"ETS-279",summary:"Update Runbook: Process for Raising a Documentation Ticket",status:"Intake",assignee:"Gabriel Sliwowicz",priority:"P3",url:"https://instacart.atlassian.net/browse/ETS-279"},
+{key:"ETS-171",summary:"Create Runbook for PSO-77283",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-171"},
+{key:"ETS-170",summary:"What is ETS Ads",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-170"},
+{key:"ETS-169",summary:"Create Runbook for PSO-71700",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-169"},
+{key:"ETS-165",summary:"Create Runbook for PSO-75621",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-165"},
+{key:"ETS-157",summary:"Create Runbook for PSO-66872",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-157"},
+{key:"ETS-140",summary:"Create Runbook for PSO-76212",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-140"},
+{key:"ETS-137",summary:"Draft Mid-Point Survey",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-137"},
+{key:"ETS-124",summary:"Create Runbook for PSO-75170",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-124"},
+{key:"ETS-105",summary:"Create Runbook for PSO-74499",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-105"},
+{key:"ETS-90",summary:"Fix 'Contact Us' Button on Ads Manager",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-90"},
+{key:"ETS-43",summary:"Create Runbook for PSO-73365",status:"Intake",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-43"},
+{key:"ETS-89",summary:"Remaining Instacart Ads Ticket",status:"Intake",assignee:"Niraj Patel",priority:"P1",url:"https://instacart.atlassian.net/browse/ETS-89"},
+{key:"ETS-154",summary:"FoodStorm DKIM — Sendgrid account transition",status:"In Progress",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-154"},
+{key:"ETS-152",summary:"FoodStorm sunsetting — non-retailer client offboarding",status:"In Progress",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-152"},
+{key:"ETS-150",summary:"ETS Ticket Dashboard",status:"In Progress",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-150"},
+{key:"ETS-141",summary:"Operation Broadcast — all comms, syncs & dashboards",status:"In Progress",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-141"},
+{key:"ETS-281",summary:"Create Feedback Form for KM WIG",status:"In Progress",assignee:"Gabriel Sliwowicz",priority:"P3",url:"https://instacart.atlassian.net/browse/ETS-281"},
+{key:"ETS-31",summary:"Creation of the ETS Dashboard App",status:"In Progress",assignee:"Eric Morin",priority:"P3",url:"https://instacart.atlassian.net/browse/ETS-31"},
+{key:"ETS-278",summary:"Track time spent on projects",status:"In Progress",assignee:"Eric Morin",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-278"},
+{key:"ETS-135",summary:"Informal Survey",status:"In Progress",assignee:"Eric Morin",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-135"},
+{key:"ETS-69",summary:"create zip for browserstack app",status:"In Progress",assignee:"Eric Morin",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-69"},
+{key:"ETS-21",summary:"Create Runbook for PSO-73473",status:"In Progress",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-21"},
+{key:"ETS-5",summary:"locate references in wiki docs to pso-int for update",status:"In Progress",assignee:"Eric Morin",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-5"},
+{key:"ETS-10",summary:"Caper ETS Bot Project",status:"In Progress",assignee:"Sahil Khan",priority:"P1",url:"https://instacart.atlassian.net/browse/ETS-10"},
+{key:"ETS-71",summary:"work on superblocks dashboard app build",status:"Review/Validation",assignee:"Eric Morin",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-71"},
+{key:"ETS-136",summary:"WIG Dashboard",status:"Review/Validation",assignee:"Sahil Khan",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-136"},
+{key:"ETS-83",summary:"Create Runbook for PSO-74414",status:"Review/Validation",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-83"},
+{key:"ETS-80",summary:"Create Runbook for PSO-74290",status:"Review/Validation",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-80"},
+{key:"ETS-66",summary:"Create Runbook for PSO-74144",status:"Review/Validation",assignee:"Niraj Patel",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-66"},
+{key:"ETS-34",summary:"Review the scoreboard",status:"Review/Validation",assignee:"Eric Morin",priority:"P2",url:"https://instacart.atlassian.net/browse/ETS-34"},
+{key:"ETS-176",summary:"FoodStorm Knowledge Management",status:"Planning",assignee:"Gage Maher",priority:"None Set",url:"https://instacart.atlassian.net/browse/ETS-176"},
+{key:"ETS-44",summary:"Glean returns inconsistent answer for caper catalog question",status:"Planning",assignee:"Unassigned",priority:"P4",url:"https://instacart.atlassian.net/browse/ETS-44"},
+{key:"ETS-28",summary:"Plan and deliver virtual treasure hunt for Social Committee",status:"Planning",assignee:"Eric Morin",priority:"P3",url:"https://instacart.atlassian.net/browse/ETS-28"}
+]};
+</script>
+<!-- WIG_DATA_END -->
+
+<!-- ── Header ── -->
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="back-btn" id="back-btn" onclick="goHome()">← All WIGs</button>
+    <div class="hdr-left">
+      <h1>🥬 ETS 4DX WIG Command Center</h1>
+      <div class="sub">Enterprise Technology Solutions · H1 2026 · Grow 0 → 6 Mature Process Workflows by June 30</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="huddle-pill">WIG HUDDLE — THURSDAYS 8:00 AM ET</div><br>
+    <span id="ts">—</span><br>
+    <a href="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90" target="_blank">↗ WIG Manager Spreadsheet</a>
+  </div>
+</div>
+<!-- Worksheet bar -->
+<div class="ws-bar">
+  📊 <a href="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90/edit?gid=1473975196#gid=1473975196" target="_blank">Open Worksheet (Dashboard Tab)</a>
+  &nbsp;·&nbsp;
+  <a href="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90/edit?gid=1551819409#gid=1551819409" target="_blank">Commitment Log</a>
+</div>
+
+<!-- ── Home page ── -->
+<div class="page active" id="page-home">
+  <div class="wrap">
+    <div style="margin-bottom:16px"><span class="sec-label">WIG Scoreboard — click any card to drill in</span></div>
+    <div class="wig-grid" id="wig-grid"></div>
+  </div>
+</div>
+
+<!-- ── Detail pages ── -->
+<div id="detail-pages"></div>
+
+<div class="footer">
+  Auto-refreshed Thursdays before the WIG Huddle &nbsp;·&nbsp; JIRA ETS + WIG Manager Spreadsheet &nbsp;·&nbsp;
+  <a href="https://docs.google.com/document/d/1zCgC6eS7LvTTRBvBsm74g8EgMpmze7QQHTt8FiKP_Mk" target="_blank">WIG 4 doc</a>
+</div>
+
+<script>
+const D=window.WIG_JIRA_DATA;
+const CHARTS=window.WIG_CHART_URLS||{};
+
+// Timestamp
+const tsEl=document.getElementById('ts');
+if(D&&D.lastUpdated){const d=new Date(D.lastUpdated);tsEl.textContent='Refreshed: '+d.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
+
+function scoreClass(s){return s<35?'danger':s<55?'warning':'good';}
+
+// ── Build home cards ──
+const grid=document.getElementById('wig-grid');
+(D.wigScores.wigs||[]).forEach(w=>{
+  const pct=Math.round(w.score),cls=scoreClass(pct);
+  const el=document.createElement('div');
+  el.className='wig-card '+cls;
+  el.onclick=()=>goDetail(w.id);
+  el.innerHTML=`<div class="wig-num">WIG ${w.id}</div>
+    <div class="wig-name">${w.name}</div>
+    <div class="wig-owner">${w.owner}</div>
+    <div class="prog-row"><div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="wig-pct">${pct}%</div></div>
+    <div class="wig-aof">${w.rag||''} &nbsp; as of ${D.wigScores.asOf}</div>
+    <div class="drill-hint">click to drill in →</div>`;
+  grid.appendChild(el);
+});
+
+// ── Build detail pages ──
+const detailPages=document.getElementById('detail-pages');
+(D.wigScores.wigs||[]).forEach(w=>{
+  const pct=Math.round(w.score),cls=scoreClass(pct);
+  const det=D.wigDetails[w.id]||{};
+  const page=document.createElement('div');
+  page.className='page'; page.id='page-wig-'+w.id;
+
+  let h=`<div class="wrap"><div class="detail-hero">
+    <div class="hero-text">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">WIG ${w.id}</div>
+      <h2>${w.name}</h2><div class="meta">Owner: ${w.owner} &nbsp;·&nbsp; ${w.rag||''}</div>
+      <div class="desc">${det.description||''}</div>
+    </div>
+    <div class="hero-score ${cls==='danger'?'red':cls==='warning'?'warn':''}">
+      <div class="big">${pct}%</div>
+      <div class="lbl">of target<br><span style="opacity:.5;font-size:10px">as of ${D.wigScores.asOf}</span></div>
+    </div></div>`;
+
+  // Metrics
+  if(det.leadMetric||det.lagMetric)h+=`<div class="metric-row">
+    <div class="metric-card"><div class="ml">🎯 Lag Metric (Outcome)</div><div class="mv">${det.lagMetric||'—'}</div></div>
+    <div class="metric-card"><div class="ml">⚡ Lead Metric (Driver)</div><div class="mv">${det.leadMetric||'—'}</div></div>
+  </div>`;
+
+  // Notes
+  if(det.notes)h+=`<div class="callout">📌 ${det.notes}</div>`;
+
+  // Live scoreboard iframe
+  const chartUrl=CHARTS[w.id];
+  if(chartUrl){
+    const iid='iframe-'+w.id;
+    h+=`<div class="iframe-wrap">
+      <div class="iframe-bar">
+        <span>📊 Live Scoreboard</span>
+        <span><button class="iframe-toggle" onclick="toggleIframe(${w.id})">Hide</button> &nbsp;
+        <a href="${chartUrl}" target="_blank">↗ Open in new tab</a></span>
+      </div>
+      <div class="iframe-container" id="iframe-container-${w.id}">
+        <iframe id="${iid}" src="${chartUrl}" allowfullscreen style="display:none"
+          onload="this.style.display='';this.parentElement.querySelector('.iframe-blocked').style.display='none'"></iframe>
+        <div class="iframe-blocked" id="iframe-blocked-${w.id}">
+          <span>⚠️ Embedded view blocked by the page's security policy</span>
+          <a class="ext-link" href="${chartUrl}" target="_blank">↗ Open scoreboard in new tab</a>
+        </div>
+      </div></div>`;
+  }
+
+  // WIG 4 = dark matter tracker; others = phase + commitment history
+  h += (w.id===4) ? buildDarkMatter() : buildWigDetail(det);
+
+  // Links
+  if(det.links&&det.links.length)h+=`<div class="panel" style="margin-top:16px">
+    <div class="panel-title">Resources</div><div class="links-row">
+    ${det.links.map(l=>`<a class="ext-link" href="${l.url}" target="_blank">↗ ${l.label}</a>`).join('')}
+    </div></div>`;
+
+  h+=`</div>`;
+  page.innerHTML=h;
+  detailPages.appendChild(page);
+});
+
+function buildWigDetail(det){
+  let h='';
+  // Phases
+  if(det.phases&&det.phases.length){
+    h+=`<div style="margin-bottom:12px"><span class="sec-label">Phase Progress</span></div>
+    <div class="panel" style="margin-bottom:18px">`;
+    det.phases.forEach(p=>{
+      const fillCls=p.pct===100?'done':p.pct>0?'active':'todo';
+      h+=`<div class="phase-row">
+        <div class="phase-lr">
+          <span class="phase-name">${p.name}</span>
+          <span class="phase-meta">${p.deadline?'Due '+p.deadline+' · ':''}<b>${p.pct}%</b></span>
+        </div>
+        <div class="phase-bg"><div class="phase-fill ${fillCls}" style="width:${p.pct}%"></div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  // Commitment history
+  if(det.commitmentHistory&&det.commitmentHistory.length){
+    h+=`<div style="margin-bottom:12px"><span class="sec-label">Commitment Log</span></div>
+    <div class="panel" style="padding:0;overflow:hidden;margin-bottom:18px">
+      <table class="commit-tbl">
+        <thead><tr><th style="width:72px">Week</th><th>Last Week's Lag (accomplished)</th><th>This Week's Lead (committed)</th></tr></thead>
+        <tbody>${det.commitmentHistory.map(c=>`<tr>
+          <td><span class="wk">${c.week}</span></td>
+          <td>${c.lag}</td><td>${c.lead}</td></tr>`).join('')}
+        </tbody></table></div>`;
+  }
+  return h;
+}
+
+function buildDarkMatter(){
+  const dm=D.darkMatter;
+  const sColors={'Intake':'#3c4cad','In Progress':'#1e7e34','Review/Validation':'#c55a00','Planning':'#ad1457'};
+  const maxS=Math.max(...Object.values(dm.byStatus));
+  const maxA=Math.max(...Object.values(dm.byAssignee));
+  let sb='',ab='';
+  Object.entries(dm.byStatus).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    const p=maxS>0?Math.round(v/maxS*100):0,c=sColors[k]||'#888';
+    sb+=`<div class="hbar-row"><div class="hbar-lr"><span>${k}</span><span><b>${v}</b></span></div>
+      <div class="hbar-bg"><div class="hbar-fill" style="width:${p}%;background:${c}"></div></div></div>`;
+  });
+  Object.entries(dm.byAssignee).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    const p=maxA>0?Math.round(v/maxA*100):0;
+    ab+=`<div class="hbar-row"><div class="hbar-lr"><span>${k}</span><span><b>${v}</b></span></div>
+      <div class="hbar-bg"><div class="hbar-fill" style="width:${p}%"></div></div></div>`;
+  });
+  const stats=[{l:'Total Open',v:dm.totalTickets,a:true},{l:'Intake',v:dm.byStatus['Intake']||0},
+    {l:'In Progress',v:dm.byStatus['In Progress']||0},{l:'Review',v:dm.byStatus['Review/Validation']||0},{l:'Planning',v:dm.byStatus['Planning']||0}];
+  const assignees=[...new Set((D.tickets||[]).map(t=>t.assignee))].sort();
+  return `<div style="margin-bottom:12px"><span class="sec-label">Open Tickets</span></div>
+  <div class="stats-row">${stats.map(s=>`<div class="stat-card"><div class="stat-n${s.a?' accent':''}">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('')}</div>
+  <div class="two-col" style="margin-bottom:18px">
+    <div class="panel"><div class="panel-title">By Status</div>${sb}</div>
+    <div class="panel"><div class="panel-title">By Assignee</div>${ab}</div>
+  </div>
+  <div class="filter-row">
+    <select id="fS" onchange="renderTbl()"><option value="">All Statuses</option>
+      <option>Intake</option><option>In Progress</option><option>Review/Validation</option><option>Planning</option></select>
+    <select id="fA" onchange="renderTbl()"><option value="">All Assignees</option>
+      ${assignees.map(a=>`<option>${a}</option>`).join('')}</select>
+    <input type="text" id="fT" placeholder="Search…" oninput="renderTbl()">
+    <span class="tbl-count" id="tktCt" style="margin-left:auto;font-size:11px;color:var(--g3)"></span>
+  </div>
+  <table class="tbl"><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Priority</th></tr></thead>
+  <tbody id="tktTb"></tbody></table>
+  ${buildWigDetail(D.wigDetails[4]||{})}`;
+}
+
+window.renderTbl=function(){
+  const sf=document.getElementById('fS'),af=document.getElementById('fA'),tf=document.getElementById('fT');
+  const tb=document.getElementById('tktTb');
+  if(!sf||!af||!tf||!tb)return;
+  const sv=sf.value,av=af.value,tv=tf.value.toLowerCase();
+  const filtered=(D.tickets||[]).filter(t=>{
+    if(sv&&t.status!==sv)return false;
+    if(av&&t.assignee!==av)return false;
+    if(tv&&!t.summary.toLowerCase().includes(tv)&&!t.key.toLowerCase().includes(tv))return false;
+    return true;
+  });
+  const ct=document.getElementById('tktCt');
+  if(ct)ct.textContent=filtered.length+' of '+(D.tickets||[]).length;
+  const sbM={'Intake':'b-intake','In Progress':'b-inprog','Review/Validation':'b-review','Planning':'b-plan'};
+  const pbM={'P1':'b-p1','P2':'b-p2','P3':'b-p3','P4':'b-p4'};
+  tb.innerHTML=filtered.map(t=>{
+    const sb=sbM[t.status]||'b-intake',pb=pbM[t.priority];
+    const pr=pb?`<span class="badge ${pb}">${t.priority}</span>`:`<span style="color:var(--g3)">—</span>`;
+    return `<tr><td class="tkey"><a href="${t.url}" target="_blank">${t.key}</a></td>
+      <td>${t.summary}</td><td><span class="badge ${sb}">${t.status}</span></td>
+      <td>${t.assignee}</td><td>${pr}</td></tr>`;
+  }).join('');
+};
+
+window.toggleIframe=function(id){
+  const c=document.getElementById('iframe-container-'+id);
+  const btn=c?c.previousElementSibling.querySelector('.iframe-toggle'):null;
+  if(!c)return;
+  const hidden=c.style.display==='none';
+  c.style.display=hidden?'':'none';
+  if(btn)btn.textContent=hidden?'Hide':'Show';
+};
+
+window.showBlocked=function(id){
+  const b=document.getElementById('iframe-blocked-'+id);
+  if(b)b.style.display='flex';
+};
+
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const p=document.getElementById(id);if(p)p.classList.add('active');window.scrollTo(0,0);}
+
+function goDetail(id){
+  showPage('page-wig-'+id);
+  document.getElementById('back-btn').classList.add('vis');
+  location.hash='wig/'+id;
+  if(id===4)setTimeout(renderTbl,50);
+}
+
+window.goHome=function(){
+  showPage('page-home');
+  document.getElementById('back-btn').classList.remove('vis');
+  location.hash='';
+};
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const h=location.hash.replace('#','');
+  if(h.startsWith('wig/')){const id=parseInt(h.split('/')[1]);if(id)goDetail(id);}
+});
+window.addEventListener('hashchange',()=>{
+  const h=location.hash.replace('#','');
+  if(!h)goHome();else if(h.startsWith('wig/'))goDetail(parseInt(h.split('/')[1]));
+});
+</script>
+</body>
+</html>
