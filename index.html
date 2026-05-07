@@ -24,6 +24,10 @@ body{font-family:'DM Sans',Poppins,Arial,sans-serif;background:var(--cashew);col
 /* Home cards */
 .ws-bar{background:rgba(255,255,255,.07);border-top:1px solid rgba(255,255,255,.08);padding:8px 24px;display:flex;align-items:center;gap:12px;font-size:12px;color:rgba(255,255,255,.6)}
 .ws-bar a{color:var(--lime);text-decoration:none;font-weight:600}
+.countdown{background:linear-gradient(90deg,var(--kale) 0%,#0a5740 100%);color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;border-bottom:3px solid var(--carrot)}
+.countdown-num{font-size:64px;font-weight:800;color:var(--turmeric);line-height:1;letter-spacing:-1px;text-shadow:0 2px 6px rgba(0,0,0,.25)}
+.countdown-lbl{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;color:rgba(255,255,255,.95);max-width:340px;line-height:1.35}
+.countdown-lbl small{display:block;font-size:11px;letter-spacing:.6px;color:rgba(255,255,255,.65);font-weight:500;margin-top:2px;text-transform:none}
 .wig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
 .wig-card{background:var(--white);border-radius:12px;padding:18px 20px;border-left:5px solid var(--lime);box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
 .wig-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.12)}
@@ -314,6 +318,11 @@ tickets:[
   &nbsp;·&nbsp;
   <a href="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90/edit?gid=1551819409#gid=1551819409" target="_blank">Commitment Log</a>
 </div>
+<!-- ── Countdown banner ── -->
+<div class="countdown">
+  <div class="countdown-num" id="cd-num">—</div>
+  <div class="countdown-lbl" id="cd-lbl">Business days remaining to H1 deadline<small id="cd-sub">June 30, 2026 · 0 → 6 mature workflows</small></div>
+</div>
 
 <!-- ── Home page ── -->
 <div class="page active" id="page-home">
@@ -551,6 +560,35 @@ window.addEventListener('hashchange',()=>{
   const h=location.hash.replace('#','');
   if(!h)goHome();else if(h.startsWith('wig/'))goDetail(parseInt(h.split('/')[1]));
 });
+
+// — Countdown to H1 deadline (business days, excludes weekends + US Memorial Day 2026) —
+(function(){
+  var DEADLINE = new Date(2026,5,30); // Jun 30, 2026 (month 0-indexed)
+  var HOLIDAYS = ['2026-05-25']; // Memorial Day
+  function biz(from,to){
+    if(to<=from) return 0;
+    var n=0, d=new Date(from); d.setHours(0,0,0,0);
+    var end=new Date(to); end.setHours(0,0,0,0);
+    while(d<=end){
+      var dow=d.getDay();
+      var iso=d.toISOString().slice(0,10);
+      if(dow!==0 && dow!==6 && HOLIDAYS.indexOf(iso)===-1) n++;
+      d.setDate(d.getDate()+1);
+    }
+    return n;
+  }
+  var now=new Date();
+  var days=biz(now,DEADLINE);
+  var elN=document.getElementById('cd-num');
+  var elL=document.getElementById('cd-lbl');
+  var elS=document.getElementById('cd-sub');
+  if(elN) elN.textContent=days;
+  if(elL && days<=0){ elL.firstChild.nodeValue='H1 deadline reached '; }
+  if(elS){
+    var pct=Math.max(0,Math.min(100,Math.round((1-days/60)*100)));
+    elS.textContent='June 30, 2026 · '+days+' business day'+(days===1?'':'s')+' left · ~'+pct+'% of H1 elapsed';
+  }
+})();
 </script>
 </body>
 </html>
