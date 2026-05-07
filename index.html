@@ -585,8 +585,8 @@ window.addEventListener('hashchange',()=>{
   if(elN) elN.textContent=days;
   if(elL && days<=0){ elL.firstChild.nodeValue='H1 deadline reached '; }
   if(elS){
-    var pct=Math.max(0,Math.min(100,Math.round((1-days/60)*100)));
-    elS.textContent='June 30, 2026 · '+days+' business day'+(days===1?'':'s')+' left · ~'+pct+'% of H1 elapsed';
+    
+    elS.textContent="H1 deadline · June 30, 2026";
   }
 })();
 </script>
