@@ -322,7 +322,8 @@ tickets:[
     </div>
   </div>
   <div class="hdr-right">
-    <div class="huddle-pill">WIG HUDDLE — THURSDAYS 8:00 AM ET</div><br>
+    <div class="huddle-pill">WIG HUDDLE — FRIDAYS 11:00 AM ET</div><br>
+    <span id="next-huddle" style="font-size:10px;opacity:.7"></span><br>
     <span id="ts">—</span><br>
     <a href="https://docs.google.com/spreadsheets/d/1R8IaSO6PgRGyeqPB0KdZ6UV_ujwuK2FMS8fa94taS90" target="_blank">↗ WIG Manager Spreadsheet</a>
   </div>
@@ -341,7 +342,7 @@ tickets:[
     <div class="kpi-strip">
       <div class="kpi lime"><div class="num">6</div><div class="lbl">Active WIG Projects</div></div>
       <div class="kpi kale"><div class="num">36</div><div class="lbl">Team Members Engaged</div></div>
-      <div class="kpi amber"><div class="num">6</div><div class="lbl">Weeks Remaining (to Jun 30)</div></div>
+      <div class="kpi amber"><div class="num" id="kpi-bizdays">—</div><div class="lbl">Biz Days Left (to Jun 30)</div></div>
       <div class="kpi pulse">
         <div style="font-size:11px;font-weight:700;color:var(--kale);text-transform:uppercase;letter-spacing:.7px">JIRA Pulse</div>
         <div class="pulse-row"><span>Active Commitments</span><b id="kpi-active">—</b></div>
@@ -369,6 +370,26 @@ const D=window.WIG_JIRA_DATA;
   var a=document.getElementById('kpi-active'); if(a) a.textContent=(D.commitments&&D.commitments.thisWeek||[]).length;
   var d=document.getElementById('kpi-done');   if(d) d.textContent=(D.commitments&&D.commitments.lastWeek||[]).length;
   var m=document.getElementById('kpi-dm');     if(m) m.textContent=(D.darkMatter&&D.darkMatter.totalTickets)||0;
+})();
+
+// Business days remaining to Jun 30
+(function(){
+  var el=document.getElementById('kpi-bizdays'); if(!el) return;
+  var end=new Date('2026-07-01T00:00:00');
+  var cur=new Date(); cur.setHours(0,0,0,0);
+  var count=0;
+  var d=new Date(cur);
+  while(d<end){d.setDate(d.getDate()+1);var day=d.getDay();if(day!==0&&day!==6)count++;}
+  el.textContent=count;
+})();
+
+// Next Friday huddle date
+(function(){
+  var el=document.getElementById('next-huddle'); if(!el) return;
+  var d=new Date();
+  var daysUntilFri=(5-d.getDay()+7)%7||7; // 0 = already Friday → show next week
+  d.setDate(d.getDate()+daysUntilFri);
+  el.textContent='Next: '+d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 })();
 const CHARTS=window.WIG_CHART_URLS||{};
 
