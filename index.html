@@ -340,13 +340,13 @@ tickets:[
   <div class="wrap">
     <div style="margin-bottom:14px"><span class="sec-label">Program Health at a Glance</span></div>
     <div class="kpi-strip">
-      <div class="kpi lime"><div class="num">6</div><div class="lbl">Active WIG Projects</div></div>
+      <div class="kpi lime"><div class="num" id="kpi-avg">—</div><div class="lbl">Avg WIG Score</div></div>
       <div class="kpi kale"><div class="num">36</div><div class="lbl">Team Members Engaged</div></div>
       <div class="kpi amber"><div class="num" id="kpi-bizdays">—</div><div class="lbl">Biz Days Left (to Jun 30)</div></div>
       <div class="kpi pulse">
-        <div style="font-size:11px;font-weight:700;color:var(--kale);text-transform:uppercase;letter-spacing:.7px">JIRA Pulse</div>
-        <div class="pulse-row"><span>Active Commitments</span><b id="kpi-active">—</b></div>
-        <div class="pulse-row"><span>Completed Last Wk</span><b id="kpi-done">—</b></div>
+        <div style="font-size:11px;font-weight:700;color:var(--kale);text-transform:uppercase;letter-spacing:.7px">Huddle Stats</div>
+        <div class="pulse-row"><span>Attendance (Last Mtg)</span><b id="kpi-attendance">—</b></div>
+        <div class="pulse-row"><span>Next Chair</span><b id="kpi-nextchair">—</b></div>
         <div class="pulse-row"><span>Dark Matter Tickets</span><b id="kpi-dm">—</b></div>
       </div>
     </div>
@@ -365,11 +365,13 @@ tickets:[
 
 <script>
 const D=window.WIG_JIRA_DATA;
-// JIRA Pulse KPIs
+// KPI strip population
 (function(){
-  var a=document.getElementById('kpi-active'); if(a) a.textContent=(D.commitments&&D.commitments.thisWeek||[]).length;
-  var d=document.getElementById('kpi-done');   if(d) d.textContent=(D.commitments&&D.commitments.lastWeek||[]).length;
-  var m=document.getElementById('kpi-dm');     if(m) m.textContent=(D.darkMatter&&D.darkMatter.totalTickets)||0;
+  var ms=D.meetingStats||{};
+  var av=document.getElementById('kpi-avg');        if(av) av.textContent=D.avgScore!=null?(D.avgScore.toFixed(1)+'%'):'—';
+  var at=document.getElementById('kpi-attendance'); if(at) at.textContent=(ms.attendeeCount||'—')+'/'+(ms.totalInvited||'—');
+  var nc=document.getElementById('kpi-nextchair');  if(nc) nc.textContent=ms.nextChair||'—';
+  var m=document.getElementById('kpi-dm');          if(m)  m.textContent=(D.darkMatter&&D.darkMatter.totalTickets)||0;
 })();
 
 // Business days remaining to Jun 30
@@ -465,7 +467,7 @@ const detailPages=document.getElementById('detail-pages');
   }
 
   // WIG 4 = dark matter tracker; others = phase + commitment history
-  h += (w.id===4) ? buildDarkMatter() : buildWigDetail(det);
+  h += (w.id===4) ? buildDarkMatter() : buildWigDetail(det, w.id);
 
   // Links
   if(det.links&&det.links.length)h+=`<div class="panel" style="margin-top:16px">
@@ -478,7 +480,7 @@ const detailPages=document.getElementById('detail-pages');
   detailPages.appendChild(page);
 });
 
-function buildWigDetail(det){
+function buildWigDetail(det, wigId){
   let h='';
   // Phases
   if(det.phases&&det.phases.length){
@@ -496,13 +498,14 @@ function buildWigDetail(det){
     });
     h+=`</div>`;
   }
-  // Commitment history
-  if(det.commitmentHistory&&det.commitmentHistory.length){
+  // Commitment log — prefer live D.commitmentLog[wigId], fallback to inline commitmentHistory
+  const history=(D.commitmentLog&&wigId&&D.commitmentLog[wigId])||det.commitmentHistory||[];
+  if(history.length){
     h+=`<div style="margin-bottom:12px"><span class="sec-label">Commitment Log</span></div>
     <div class="panel" style="padding:0;overflow:hidden;margin-bottom:18px">
       <table class="commit-tbl">
         <thead><tr><th style="width:72px">Week</th><th>Last Week's Lag (accomplished)</th><th>This Week's Lead (committed)</th></tr></thead>
-        <tbody>${det.commitmentHistory.map(c=>`<tr>
+        <tbody>${history.map(c=>`<tr>
           <td><span class="wk">${c.week}</span></td>
           <td>${c.lag}</td><td>${c.lead}</td></tr>`).join('')}
         </tbody></table></div>`;
@@ -545,7 +548,7 @@ function buildDarkMatter(){
   </div>
   <table class="tbl"><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Priority</th></tr></thead>
   <tbody id="tktTb"></tbody></table>
-  ${buildWigDetail(D.wigDetails[4]||{})}`;
+  ${buildWigDetail(D.wigDetails[4]||{}, 4)}`;
 }
 
 window.renderTbl=function(){
